@@ -27,8 +27,8 @@ h1 {
 """, unsafe_allow_html=True)
 
 # --- FILE PATHS ---
-excel_path = r".\Global Health Data.xlsx"
-logo_path = r".\AAML_Logo.png"
+excel_path = r"./Global Health Data.xlsx"
+logo_path = r"./AAML_Logo.png"
 
 # --- First Row: Logo Top-Left ---
 st.image(logo_path, width=500)  # variable used correctly
