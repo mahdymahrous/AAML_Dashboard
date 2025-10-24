@@ -3,6 +3,7 @@ import streamlit as st
 import numpy as np
 import time
 from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo  # Python 3.9+
 import base64
 
 # --- PAGE CONFIG ---
@@ -97,6 +98,9 @@ def load_data(path):
 
 df = load_data(excel_path)
 
+# --- TIMEZONE ---
+tz = ZoneInfo("Asia/Riyadh")  # GMT+3
+
 if not df.empty:
 
     # --- PLACEHOLDERS ---
@@ -121,7 +125,7 @@ if not df.empty:
 
     # --- SIMULATION SETUP ---
     oldest_time = df['PROCEDURE_END'].min()
-    now = datetime.now()
+    now = datetime.now(tz)
     time_of_day_now = now.time()
     simulated_current_time = datetime.combine(oldest_time.date(), time_of_day_now)
 
@@ -173,7 +177,7 @@ if not df.empty:
 
     # --- LIVE CLOCK AND REAL-TIME COUNT ---
     while True:
-        current_time = datetime.now()
+        current_time = datetime.now(tz)  # Use GMT+3
         clock_placeholder.markdown(f"<div class='clock'>{current_time.strftime('%d-%m-%Y %H:%M:%S')}</div>", unsafe_allow_html=True)
 
         # Calculate new simulated count
@@ -214,4 +218,3 @@ if not df.empty:
             st.markdown(section_html, unsafe_allow_html=True)
 
         time.sleep(1)
-
