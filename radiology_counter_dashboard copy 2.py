@@ -139,7 +139,7 @@ if not df.empty:
     section_counts = df_today[df_today['PROCEDURE_END'] <= simulated_current_time].groupby('SECTION_CODE').size()
 
     # --- ALL-TIME START ---
-    alltime_start = 1_500_000
+    alltime_start = 1_554_362
     total_count = alltime_start + simulated_count
 
     # --- DISPLAY INITIAL ALL-TIME COUNTER ---
@@ -218,3 +218,4 @@ if not df.empty:
             st.markdown(section_html, unsafe_allow_html=True)
 
         time.sleep(1)
+
