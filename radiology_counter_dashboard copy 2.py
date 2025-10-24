@@ -68,8 +68,8 @@ h1 {
 """, unsafe_allow_html=True)
 
 # --- FILE PATHS ---
-excel_path = r".\Global Health Data.xlsx"
-logo_path = r".\AAML_Logo.png"
+excel_path = r"./Global Health Data.xlsx"
+logo_path = r"./AAML_Logo.png"
 
 # --- HEADER (logo centered above title using base64) ---
 def img_to_base64(path):
@@ -214,3 +214,4 @@ if not df.empty:
             st.markdown(section_html, unsafe_allow_html=True)
 
         time.sleep(1)
+
