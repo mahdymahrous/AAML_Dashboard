@@ -157,11 +157,10 @@ if not df.empty:
     # --- AUTO-START SIMULATION WITH DEFAULT VALUES ---
     st.sidebar.header("Simulation Setup")
 
-    # --- DEFAULTS ---
     default_alltime = 1_554_362
     default_date = df['PROCEDURE_END'].dt.date.min()
 
-    # 1️⃣ All-Time input (editable)
+    # All-Time input (editable)
     alltime_start = st.sidebar.number_input(
         "Enter All-Time Start Value",
         min_value=0,
@@ -170,7 +169,7 @@ if not df.empty:
         format="%d"
     )
 
-    # 2️⃣ Date picker (editable)
+    # Date picker (editable)
     available_dates = sorted(df['PROCEDURE_END'].dt.date.unique())
     selected_date = st.sidebar.selectbox(
         "Select a Date to Simulate",
@@ -235,7 +234,7 @@ if not df.empty:
         st.markdown(f"""
         <div class='alltime-counter'>
             <div class='alltime-number'>{total_count:,}</div>
-            <div class='alltime-label'>All-Time Procedures</div>
+            <div class='alltime-label'>Total Procedures</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -243,7 +242,7 @@ if not df.empty:
         st.markdown(f"""
         <div class='counter'>
             <div class='counter-number'>{simulated_count:,}</div>
-            <div class='counter-label'>Procedures Completed Today</div>
+            <div class='counter-label'>Procedures Today</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -286,7 +285,7 @@ if not df.empty:
             st.markdown(f"""
             <div class='counter'>
                 <div class='counter-number'>{today_count:,}</div>
-                <div class='counter-label'>Procedures Completed Today</div>
+                <div class='counter-label'>Procedures Today</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -294,7 +293,7 @@ if not df.empty:
             st.markdown(f"""
             <div class='alltime-counter'>
                 <div class='alltime-number'>{total_count:,}</div>
-                <div class='alltime-label'>All-Time Procedures</div>
+                <div class='alltime-label'>Total Procedures</div>
             </div>
             """, unsafe_allow_html=True)
 
