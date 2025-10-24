@@ -9,7 +9,7 @@ import base64
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Radiology Procedures Counter", layout="wide")
 
-# --- CUSTOM CSS (centered, single page) ---
+# --- CUSTOM CSS ---
 st.markdown("""
 <style>
 body {
@@ -20,7 +20,7 @@ body {
     justify-content: center;
 }
 .main .block-container {
-    max-width: 800px;
+    max-width: 900px;
     padding: 1rem 2rem;
 }
 h1 {
@@ -30,26 +30,74 @@ h1 {
     margin-top: 10px;
     margin-bottom: 20px;
 }
-.counter, .alltime-counter {
+
+/* --- Today's Counter: Highlighted --- */
+.counter {
     text-align: center;
     margin: 20px 0;
+    padding: 20px;
+    border: 3px solid #FFA500;
+    border-radius: 20px;
+    background-color: #1f1f1f;
+    box-shadow: 0 0 30px #FFA500;
 }
-.counter-number, .alltime-number {
-    font-size: 100px;
+.counter-number {
+    font-size: 120px;  /* Bigger for emphasis */
     font-weight: bold;
     color: #FFA500;
+    text-shadow: 0 0 20px #FFA500;
 }
-.counter-label, .alltime-label {
-    font-size: 36px;
+.counter-label {
+    font-size: 42px;
     color: #ffffff;
+    letter-spacing: 1px;
+}
+
+/* --- All-Time Counter: Secondary --- */
+.alltime-counter {
+    text-align: center;
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 15px;
+    background-color: #2e2e2e;
+    border: 2px dashed #888888;
+    box-shadow: 0 0 10px #888888;
+}
+.alltime-number {
+    font-size: 60px;   /* Smaller than today */
+    font-weight: bold;
+    color: #888888;
+}
+.alltime-label {
+    font-size: 28px;
+    color: #cccccc;
+}
+
+/* --- Date & Clock --- */
+.datetime-container {
+    text-align: center;
+    margin: 20px 0 40px 0;
+}
+.current-date {
+    font-size: 32px;       /* smaller than title */
+    font-weight: 600;
+    color: #FFFFFF;
+    text-transform: uppercase;
+    border-bottom: 3px solid #FFA500;
+    display: inline-block;
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
 }
 .clock {
-    font-size: 60px;
-    color: #00FF00;
+    font-size: 40px;       /* smaller than title */
+    color: #00FF88;
     font-weight: bold;
-    margin: 20px 0;
-    text-align: center;
+    font-family: 'Consolas', 'Courier New', monospace;
+    text-shadow: 0 0 10px #00FF88;
 }
+
+/* --- Sections --- */
 .section-box {
     display: inline-block;
     border-radius: 15px;
@@ -60,6 +108,10 @@ h1 {
     font-weight: bold;
     color: #ffffff;
     margin: 10px;
+    transition: transform 0.2s;
+}
+.section-box:hover {
+    transform: scale(1.1);
 }
 .section-label {
     font-size: 20px;
@@ -102,12 +154,40 @@ df = load_data(excel_path)
 tz = ZoneInfo("Asia/Riyadh")  # GMT+3
 
 if not df.empty:
+    # --- AUTO-START SIMULATION WITH DEFAULT VALUES ---
+    st.sidebar.header("Simulation Setup")
+
+    # --- DEFAULTS ---
+    default_alltime = 1_554_362
+    default_date = df['PROCEDURE_END'].dt.date.min()
+
+    # 1️⃣ All-Time input (editable)
+    alltime_start = st.sidebar.number_input(
+        "Enter All-Time Start Value",
+        min_value=0,
+        value=default_alltime,
+        step=1000,
+        format="%d"
+    )
+
+    # 2️⃣ Date picker (editable)
+    available_dates = sorted(df['PROCEDURE_END'].dt.date.unique())
+    selected_date = st.sidebar.selectbox(
+        "Select a Date to Simulate",
+        options=available_dates,
+        index=available_dates.index(default_date),
+        format_func=lambda d: d.strftime("%d-%m-%Y")
+    )
+
+    # Auto-start simulation
+    start_sim = True
+    st.sidebar.success(f"Simulation auto-started for **{selected_date.strftime('%d-%m-%Y')}** with All-Time {alltime_start:,}")
 
     # --- PLACEHOLDERS ---
+    datetime_placeholder = st.empty()
     alltime_placeholder = st.empty()
     display_placeholder = st.empty()
     section_placeholder = st.empty()
-    clock_placeholder = st.empty()
 
     # --- SECTION COLORS ---
     section_colors = {
@@ -124,25 +204,33 @@ if not df.empty:
     }
 
     # --- SIMULATION SETUP ---
-    oldest_time = df['PROCEDURE_END'].min()
     now = datetime.now(tz)
     time_of_day_now = now.time()
-    simulated_current_time = datetime.combine(oldest_time.date(), time_of_day_now)
 
-    last_procedure_time = df[df['PROCEDURE_END'].dt.date == oldest_time.date()]['PROCEDURE_END'].max()
+    df_today = df[df['PROCEDURE_END'].dt.date == selected_date]
+    if df_today.empty:
+        st.error(f"No procedures found for {selected_date.strftime('%d-%m-%Y')}.")
+        st.stop()
+
+    simulated_current_time = datetime.combine(selected_date, time_of_day_now)
+    last_procedure_time = df_today['PROCEDURE_END'].max()
     if simulated_current_time > last_procedure_time:
         simulated_current_time = last_procedure_time
 
-    # --- FAST-FORWARD PROCEDURES ---
-    df_today = df[df['PROCEDURE_END'].dt.date == oldest_time.date()]
+    # --- INITIAL COUNTS ---
     simulated_count = df_today[df_today['PROCEDURE_END'] <= simulated_current_time].shape[0]
     section_counts = df_today[df_today['PROCEDURE_END'] <= simulated_current_time].groupby('SECTION_CODE').size()
-
-    # --- ALL-TIME START ---
-    alltime_start = 1_554_362
     total_count = alltime_start + simulated_count
 
-    # --- DISPLAY INITIAL ALL-TIME COUNTER ---
+    # --- INITIAL DISPLAY ---
+    with datetime_placeholder.container():
+        st.markdown(f"""
+        <div class='datetime-container'>
+            <div class='current-date'>{datetime.now(tz).strftime('%A, %d %B %Y')}</div>
+            <div class='clock'>{datetime.now(tz).strftime('%H:%M:%S')}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
     with alltime_placeholder.container():
         st.markdown(f"""
         <div class='alltime-counter'>
@@ -151,7 +239,6 @@ if not df.empty:
         </div>
         """, unsafe_allow_html=True)
 
-    # --- DISPLAY INITIAL TODAY COUNTER ---
     with display_placeholder.container():
         st.markdown(f"""
         <div class='counter'>
@@ -160,34 +247,41 @@ if not df.empty:
         </div>
         """, unsafe_allow_html=True)
 
-    # --- DISPLAY INITIAL SECTION COUNTS ---
     with section_placeholder.container():
         section_html = "<div style='text-align:center;'>"
         for section, count in section_counts.items():
             color = section_colors.get(section, "#888888")
-            section_html += f"""<div class='section-box' style='background-color:{color};'>
-                                 {count:,}
-                                 <div class='section-label'>{section}</div>
-                                 </div>"""
+            section_html += f"""
+            <div class='section-box' style='background-color:{color};'>
+                {count:,}
+                <div class='section-label'>{section}</div>
+            </div>"""
         section_html += "</div>"
         st.markdown(section_html, unsafe_allow_html=True)
 
-    # --- FUTURE PROCEDURES FOR TODAY ---
+    # --- FUTURE PROCEDURES ---
     df_future = df_today[df_today['PROCEDURE_END'] > simulated_current_time]
 
-    # --- LIVE CLOCK AND REAL-TIME COUNT ---
+    # --- LIVE SIMULATION LOOP ---
     while True:
-        current_time = datetime.now(tz)  # Use GMT+3
-        clock_placeholder.markdown(f"<div class='clock'>{current_time.strftime('%d-%m-%Y %H:%M:%S')}</div>", unsafe_allow_html=True)
+        current_time = datetime.now(tz)
 
-        # Calculate new simulated count
-        elapsed_seconds = (datetime.combine(oldest_time.date(), current_time.time()) - simulated_current_time).total_seconds()
+        # --- UPDATED DATETIME DISPLAY ---
+        with datetime_placeholder.container():
+            st.markdown(f"""
+            <div class='datetime-container'>
+                <div class='current-date'>{datetime.now(tz).strftime('%A, %d %B %Y')}</div>
+                <div class='clock'>{current_time.strftime('%H:%M:%S')}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        elapsed_seconds = (datetime.combine(selected_date, current_time.time()) - simulated_current_time).total_seconds()
         new_count = df_future[df_future['PROCEDURE_END'] <= simulated_current_time + timedelta(seconds=elapsed_seconds)].shape[0]
 
-        # Update counters
         today_count = simulated_count + new_count
         total_count = alltime_start + today_count
 
+        # Update counters
         with display_placeholder.container():
             st.markdown(f"""
             <div class='counter'>
@@ -204,18 +298,17 @@ if not df.empty:
             </div>
             """, unsafe_allow_html=True)
 
-        # --- UPDATE SECTION COUNTS ---
         current_section_counts = df_today[df_today['PROCEDURE_END'] <= simulated_current_time + timedelta(seconds=elapsed_seconds)].groupby('SECTION_CODE').size()
         with section_placeholder.container():
             section_html = "<div style='text-align:center;'>"
             for section, count in current_section_counts.items():
                 color = section_colors.get(section, "#888888")
-                section_html += f"""<div class='section-box' style='background-color:{color};'>
-                                     {count:,}
-                                     <div class='section-label'>{section}</div>
-                                     </div>"""
+                section_html += f"""
+                <div class='section-box' style='background-color:{color};'>
+                    {count:,}
+                    <div class='section-label'>{section}</div>
+                </div>"""
             section_html += "</div>"
             st.markdown(section_html, unsafe_allow_html=True)
 
         time.sleep(1)
-
