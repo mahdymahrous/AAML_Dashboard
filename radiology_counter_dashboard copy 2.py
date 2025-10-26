@@ -144,7 +144,7 @@ logo_base64 = img_to_base64(logo_path)
 
 st.markdown(f"""
 <div style="text-align:center;">
-    <img src="data:image/png;base64,{logo_base64}" width="250" style="display:block; margin:auto;">
+    <img src="data:image/png;base64,{logo_base64}" width="400" style="display:block; margin:auto;">
     <h1>AAML Radiology Procedures</h1>
 </div>
 """, unsafe_allow_html=True)
@@ -340,3 +340,4 @@ if not df.empty:
         previous_section_counts = curr_reindexed.copy()
 
         time.sleep(1)
+
