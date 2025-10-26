@@ -9,17 +9,22 @@ import base64
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Radiology Procedures Counter", layout="wide")
 
+
+with open("./BG.png", "rb") as f:
+    bg_base64 = base64.b64encode(f.read()).decode()
+
 # --- CUSTOM CSS ---
 # --- CUSTOM CSS ---
 st.markdown(f"""
 <style>
 body, .stApp {{
-    background-image: url("data:image/png;base64,{base64.b64encode(open('./BG.png','rb').read()).decode()}");
+    background-image: url("data:image/png;base64,{bg_base64}");
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
     color: #ffffff;
 }}
+
 
 /* Keep your block container centered and max-width */
 .main .block-container {{
@@ -351,3 +356,4 @@ if not df.empty:
         previous_section_counts = curr_reindexed.copy()
 
         time.sleep(1)
+
