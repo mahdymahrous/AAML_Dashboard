@@ -143,8 +143,10 @@ st.markdown(f"""
 @st.cache_data
 def load_data(path):
     df = pd.read_excel(path)
-    df['PROCEDURE_END'] = pd.to_datetime(df['PROCEDURE_END'], format="%d-%m-%y %H:%M", errors='coerce')
+    df['PROCEDURE_END'] = pd.to_datetime(df['PROCEDURE_END'], format="%d-%m-%y %H:%M:%S", errors='coerce')
     df = df.dropna(subset=['PROCEDURE_END'])
+    # Add random seconds to PROCEDURE_END to ensure uniqueness
+    df['PROCEDURE_END'] = df['PROCEDURE_END'] + pd.to_timedelta(np.random.randint(0, 60, len(df)), unit='s')
     df = df.sort_values('PROCEDURE_END')
     return df
 
@@ -193,7 +195,7 @@ if not df.empty:
         "X-Ray": "#E63946",
         "CT": "#457B9D",
         "US": "#F4A261",
-        "X-Ray (BMD)": "#A8DADC",
+        "X-Ray (BMD)": "#A8DADC8F",
         "MRI": "#2A9D8F",
         "Other NM": "#6D6875",
         "PET-CT": "#FFB400",
