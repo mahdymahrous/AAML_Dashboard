@@ -25,7 +25,6 @@ body, .stApp {{
     color: #ffffff;
 }}
 
-
 /* Keep your block container centered and max-width */
 .main .block-container {{
     max-width: 900px;
@@ -50,17 +49,17 @@ h1 {{
 .counter {{
     text-align: center;
     margin: 20px 0;
-    padding: 20px;
-    border: 3px solid #FFA500;
-    border-radius: 20px;
-    background-color: rgba(31,31,31,0.7);
-    box-shadow: 0 0 30px #FFA500;
+    padding: 0;          
+    border: none;        
+    border-radius: 0;    
+    background-color: transparent; 
+    box-shadow: none;    
 }}
 .counter-number {{
     font-size: 120px;
     font-weight: bold;
     color: #FFA500;
-    text-shadow: 0 0 20px #FFA500;
+    text-shadow: 0 0 20px #FFA500; 
 }}
 .counter-label {{
     font-size: 42px;
@@ -72,11 +71,11 @@ h1 {{
 .alltime-counter {{
     text-align: center;
     margin: 20px 0;
-    padding: 15px;
-    border-radius: 15px;
-    background-color: rgba(46,46,46,0.7);
-    border: 2px dashed #888888;
-    box-shadow: 0 0 10px #888888;
+    padding: 0;          
+    border: none;        
+    border-radius: 0;    
+    background-color: transparent; 
+    box-shadow: none;    
 }}
 .alltime-number {{
     font-size: 60px;
@@ -87,6 +86,7 @@ h1 {{
     font-size: 28px;
     color: #cccccc;
 }}
+
 
 /* --- Date & Clock --- */
 .datetime-container {{
@@ -356,4 +356,3 @@ if not df.empty:
         previous_section_counts = curr_reindexed.copy()
 
         time.sleep(1)
-
