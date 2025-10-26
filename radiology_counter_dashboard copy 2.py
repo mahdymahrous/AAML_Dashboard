@@ -10,76 +10,86 @@ import base64
 st.set_page_config(page_title="Radiology Procedures Counter", layout="wide")
 
 # --- CUSTOM CSS ---
-st.markdown("""
+# --- CUSTOM CSS ---
+st.markdown(f"""
 <style>
-html, body {
-    background-color: #1e1e1e;
+body, .stApp {{
+    background-image: url("data:image/png;base64,{base64.b64encode(open('./BG.png','rb').read()).decode()}");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     color: #ffffff;
-    font-family: 'Segoe UI', sans-serif;
-    display: flex;
-    justify-content: center;
-}
-.main .block-container {
+}}
+
+/* Keep your block container centered and max-width */
+.main .block-container {{
     max-width: 900px;
     padding: 1rem 2rem;
-}
-h1 {
+    background-color: rgba(0,0,0,0.4); /* semi-transparent overlay for readability */
+    border-radius: 15px;
+}}
+
+/* Optional: make counters slightly transparent so background shows through */
+.counter, .alltime-counter, .section-box {{
+    background-color: rgba(31, 31, 31, 0.7);
+}}
+h1 {{
     color: #FFA500;
     font-size: 50px;
     text-align: center;
     margin-top: 10px;
     margin-bottom: 20px;
-}
+}}
 
-/* --- Today's Counter: Highlighted --- */
-.counter {
+/* --- Today's Counter --- */
+.counter {{
     text-align: center;
     margin: 20px 0;
     padding: 20px;
     border: 3px solid #FFA500;
     border-radius: 20px;
-    background-color: #1f1f1f;
+    background-color: rgba(31,31,31,0.7);
     box-shadow: 0 0 30px #FFA500;
-}
-.counter-number {
-    font-size: 120px;  /* Bigger for emphasis */
+}}
+.counter-number {{
+    font-size: 120px;
     font-weight: bold;
     color: #FFA500;
     text-shadow: 0 0 20px #FFA500;
-}
-.counter-label {
+}}
+.counter-label {{
     font-size: 42px;
     color: #ffffff;
     letter-spacing: 1px;
-}
+}}
 
-/* --- All-Time Counter: Secondary --- */
-.alltime-counter {
+/* --- All-Time Counter --- */
+.alltime-counter {{
     text-align: center;
     margin: 20px 0;
     padding: 15px;
     border-radius: 15px;
-    background-color: #2e2e2e;
+    background-color: rgba(46,46,46,0.7);
     border: 2px dashed #888888;
     box-shadow: 0 0 10px #888888;
-}
-.alltime-number {
-    font-size: 60px;   /* Smaller than today */
+}}
+.alltime-number {{
+    font-size: 60px;
     font-weight: bold;
     color: #888888;
-}
-.alltime-label {
+}}
+.alltime-label {{
     font-size: 28px;
     color: #cccccc;
-}
+}}
 
 /* --- Date & Clock --- */
-.datetime-container {
+.datetime-container {{
     text-align: center;
     margin: 20px 0 40px 0;
-}
-.current-date {
-    font-size: 32px;       /* smaller than title */
+}}
+.current-date {{
+    font-size: 32px;
     font-weight: 600;
     color: #FFFFFF;
     text-transform: uppercase;
@@ -88,17 +98,17 @@ h1 {
     padding-bottom: 4px;
     margin-bottom: 10px;
     letter-spacing: 1px;
-}
-.clock {
-    font-size: 40px;       /* smaller than title */
+}}
+.clock {{
+    font-size: 40px;
     color: #00FF88;
     font-weight: bold;
     font-family: 'Consolas', 'Courier New', monospace;
     text-shadow: 0 0 10px #00FF88;
-}
+}}
 
 /* --- Sections --- */
-.section-box {
+.section-box {{
     display: inline-block;
     border-radius: 15px;
     padding: 20px 25px;
@@ -109,26 +119,27 @@ h1 {
     color: #ffffff;
     margin: 10px;
     transition: transform 0.2s;
-}
-.section-box:hover {
+}}
+.section-box:hover {{
     transform: scale(1.1);
-}
-.section-label {
+}}
+.section-label {{
     font-size: 20px;
     margin-top: 8px;
-}
+}}
 
-/* --- Glow for updated sections (minimal addition) --- */
-@keyframes glowPulse {
-    0%   { box-shadow: 0 0 6px 2px rgba(255,255,255,0.35); transform: translateY(0); }
-    50%  { box-shadow: 0 0 24px 8px rgba(255,255,255,0.65); transform: translateY(-3px); }
-    100% { box-shadow: 0 0 6px 2px rgba(255,255,255,0.35); transform: translateY(0); }
-}
-.glow {
+/* --- Glow animation --- */
+@keyframes glowPulse {{
+    0%   {{ box-shadow: 0 0 6px 2px rgba(255,255,255,0.35); transform: translateY(0); }}
+    50%  {{ box-shadow: 0 0 24px 8px rgba(255,255,255,0.65); transform: translateY(-3px); }}
+    100% {{ box-shadow: 0 0 6px 2px rgba(255,255,255,0.35); transform: translateY(0); }}
+}}
+.glow {{
     animation: glowPulse 1s ease-in-out;
-}
+}}
 </style>
 """, unsafe_allow_html=True)
+
 
 # --- FILE PATHS ---
 excel_path = r"./Global Health Data.xlsx"
@@ -340,5 +351,3 @@ if not df.empty:
         previous_section_counts = curr_reindexed.copy()
 
         time.sleep(1)
-
-
