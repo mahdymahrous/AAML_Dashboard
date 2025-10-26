@@ -12,7 +12,7 @@ st.set_page_config(page_title="Radiology Procedures Counter", layout="wide")
 # --- CUSTOM CSS ---
 st.markdown("""
 <style>
-body {
+html, body {
     background-color: #1e1e1e;
     color: #ffffff;
     font-family: 'Segoe UI', sans-serif;
@@ -340,4 +340,5 @@ if not df.empty:
         previous_section_counts = curr_reindexed.copy()
 
         time.sleep(1)
+
 
