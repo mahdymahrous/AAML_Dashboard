@@ -67,15 +67,19 @@ h1 {{
     background-color: transparent;
     box-shadow: none;
 }}
-.alltime-number {{
-    font-size: 60px;
+.alltime-number {{ 
+    font-size: 120px;       /* same as .counter-number */
     font-weight: bold;
-    color: #888888;
+    color: #ec3903;         /* orange */
+    text-shadow: 0 0 20px #FFA500;
 }}
+
 .alltime-label {{
-    font-size: 28px;
-    color: #cccccc;
+    font-size: 42px;        /* same as .counter-label */
+    color: #ffffff;
+    letter-spacing: 1px;
 }}
+
 .datetime-container {{
     text-align: center;
     margin: 20px 0 40px 0;
