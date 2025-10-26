@@ -3,7 +3,7 @@ import streamlit as st
 import numpy as np
 import time
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo  # Python 3.9+
+from zoneinfo import ZoneInfo
 import base64
 
 # --- PAGE CONFIG ---
@@ -27,9 +27,6 @@ body, .stApp {{
     padding: 1rem 2rem;
     background-color: rgba(0,0,0,0.4);
     border-radius: 15px;
-}}
-.counter, .alltime-counter, .section-box {{
-    background-color: rgba(31, 31, 31, 0.7);
 }}
 h1 {{
     color: #FFA500;
@@ -68,18 +65,16 @@ h1 {{
     box-shadow: none;
 }}
 .alltime-number {{ 
-    font-size: 120px;       /* same as .counter-number */
+    font-size: 120px;
     font-weight: bold;
-    color: #ec3903;         /* orange */
+    color: #ec3903;
     text-shadow: 0 0 20px #FFA500;
 }}
-
 .alltime-label {{
-    font-size: 42px;        /* same as .counter-label */
+    font-size: 42px;
     color: #ffffff;
     letter-spacing: 1px;
 }}
-
 .datetime-container {{
     text-align: center;
     margin: 20px 0 40px 0;
@@ -102,39 +97,8 @@ h1 {{
     font-family: 'Consolas', 'Courier New', monospace;
     text-shadow: 0 0 10px #00FF88;
 }}
-.section-box {{
-    display: inline-block;
-    border-radius: 15px;
-    padding: 20px 25px;
-    text-align: center;
-    min-width: 150px;
-    font-size: 36px;
-    font-weight: bold;
-    color: #ffffff;
-    margin: 10px;
-    transition: transform 0.2s;
-}}
-.section-box:hover {{
-    transform: scale(1.1);
-}}
-.section-label {{
-    font-size: 20px;
-    margin-top: 8px;
-}}
-@keyframes glowPulse {{
-    0%   {{ box-shadow: 0 0 6px 2px rgba(255,255,255,0.35); transform: translateY(0); }}
-    50%  {{ box-shadow: 0 0 24px 8px rgba(255,255,255,0.65); transform: translateY(-3px); }}
-    100% {{ box-shadow: 0 0 6px 2px rgba(255,255,255,0.35); transform: translateY(0); }}
-}}
-.glow {{
-    animation: glowPulse 1s ease-in-out;
-}}
 </style>
 """, unsafe_allow_html=True)
-
-# --- FILE PATHS ---
-excel_path = r"./Global Health Data.xlsx"
-logo_path = r"./AAML_Logo.png"
 
 # --- HEADER ---
 def img_to_base64(path):
@@ -142,7 +106,7 @@ def img_to_base64(path):
         data = f.read()
     return base64.b64encode(data).decode()
 
-logo_base64 = img_to_base64(logo_path)
+logo_base64 = img_to_base64("./AAML_Logo.png")
 
 st.markdown(f"""
 <div style="text-align:center;">
@@ -161,10 +125,10 @@ def load_data(path):
     df = df.sort_values('PROCEDURE_END')
     return df
 
-df = load_data(excel_path)
+df = load_data("./Global Health Data.xlsx")
 
 # --- TIMEZONE ---
-tz = ZoneInfo("Asia/Riyadh")  # GMT+3
+tz = ZoneInfo("Asia/Riyadh")
 
 if not df.empty:
     st.sidebar.header("Simulation Setup")
@@ -190,24 +154,9 @@ if not df.empty:
     st.sidebar.success(f"Simulation auto-started for **{selected_date.strftime('%d-%m-%Y')}** with All-Time {alltime_start:,}")
 
     # --- PLACEHOLDERS ---
-    total_counter_placeholder = st.empty()  # New placeholder above date
+    total_counter_placeholder = st.empty()
     datetime_placeholder = st.empty()
     display_placeholder = st.empty()
-    section_placeholder = st.empty()
-
-    # --- SECTION COLORS ---
-    section_colors = {
-        "X-Ray": "#E63946",
-        "CT": "#457B9D",
-        "US": "#F4A261",
-        "X-Ray (BMD)": "#A8DADC8F",
-        "MRI": "#2A9D8F",
-        "Other NM": "#6D6875",
-        "PET-CT": "#FFB400",
-        "X-Ray (Fluoro)": "#D62828",
-        "Mamo": "#F77F00",
-        "HE": "#264653"
-    }
 
     now = datetime.now(tz)
     time_of_day_now = now.time()
@@ -223,48 +172,31 @@ if not df.empty:
         simulated_current_time = last_procedure_time
 
     simulated_count = df_today[df_today['PROCEDURE_END'] <= simulated_current_time].shape[0]
-    section_counts = df_today[df_today['PROCEDURE_END'] <= simulated_current_time].groupby('SECTION_CODE').size()
     total_count = alltime_start + simulated_count
 
     # --- INITIAL DISPLAY ---
-    with total_counter_placeholder.container():
-        st.markdown(f"""
+    total_counter_placeholder.markdown(f"""
         <div class='alltime-counter'>
             <div class='alltime-number'>{total_count:,}</div>
-            <div class='alltime-label'>Total Procedures Since Go-Live</div>
+            <div class='alltime-label'>Total Procedures Since 1st Dec. 2023</div>
         </div>
-        """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-    with datetime_placeholder.container():
-        st.markdown(f"""
+    datetime_placeholder.markdown(f"""
         <div class='datetime-container'>
             <div class='current-date'>{datetime.now(tz).strftime('%A, %d %B %Y')}</div>
             <div class='clock'>{datetime.now(tz).strftime('%H:%M:%S')}</div>
         </div>
-        """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-    with display_placeholder.container():
-        st.markdown(f"""
+    display_placeholder.markdown(f"""
         <div class='counter'>
             <div class='counter-number'>{simulated_count:,}</div>
             <div class='counter-label'>Procedures Today</div>
         </div>
-        """, unsafe_allow_html=True)
-
-    with section_placeholder.container():
-        section_html = "<div style='text-align:center;'>"
-        for section, count in section_counts.items():
-            color = section_colors.get(section, "#888888")
-            section_html += f"""
-            <div class='section-box' style='background-color:{color};'>
-                {count:,}
-                <div class='section-label'>{section}</div>
-            </div>"""
-        section_html += "</div>"
-        st.markdown(section_html, unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
     df_future = df_today[df_today['PROCEDURE_END'] > simulated_current_time]
-    previous_section_counts = section_counts.copy()
 
     # --- LIVE SIMULATION LOOP ---
     while True:
@@ -276,52 +208,27 @@ if not df.empty:
         total_count = alltime_start + today_count
 
         # Update Total counter
-        with total_counter_placeholder.container():
-            st.markdown(f"""
+        total_counter_placeholder.markdown(f"""
             <div class='alltime-counter'>
                 <div class='alltime-number'>{total_count:,}</div>
-                <div class='alltime-label'>Total Procedures Since Go-Live</div>
+                <div class='alltime-label'>Total Procedures Since 1st Dec. 2023</div>
             </div>
-            """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
         # Update date/time
-        with datetime_placeholder.container():
-            st.markdown(f"""
+        datetime_placeholder.markdown(f"""
             <div class='datetime-container'>
                 <div class='current-date'>{datetime.now(tz).strftime('%A, %d %B %Y')}</div>
                 <div class='clock'>{current_time.strftime('%H:%M:%S')}</div>
             </div>
-            """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
         # Update today's procedures
-        with display_placeholder.container():
-            st.markdown(f"""
+        display_placeholder.markdown(f"""
             <div class='counter'>
                 <div class='counter-number'>{today_count:,}</div>
                 <div class='counter-label'>Procedures Today</div>
             </div>
-            """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-        # Update sections
-        current_section_counts = df_today[df_today['PROCEDURE_END'] <= simulated_current_time + timedelta(seconds=elapsed_seconds)].groupby('SECTION_CODE').size()
-        union_index = previous_section_counts.index.union(current_section_counts.index)
-        prev_reindexed = previous_section_counts.reindex(union_index, fill_value=0)
-        curr_reindexed = current_section_counts.reindex(union_index, fill_value=0)
-        diffs = curr_reindexed - prev_reindexed
-        updated_sections = diffs[diffs > 0].index.tolist()
-
-        with section_placeholder.container():
-            section_html = "<div style='text-align:center;'>"
-            for section, count in current_section_counts.items():
-                color = section_colors.get(section, "#888888")
-                glow_class = "glow" if section in updated_sections else ""
-                section_html += f"""
-                <div class='section-box {glow_class}' style='background-color:{color};'>
-                    {count:,}
-                    <div class='section-label'>{section}</div>
-                </div>"""
-            section_html += "</div>"
-            st.markdown(section_html, unsafe_allow_html=True)
-
-        previous_section_counts = curr_reindexed.copy()
         time.sleep(1)
