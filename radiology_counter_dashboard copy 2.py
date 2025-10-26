@@ -117,6 +117,16 @@ h1 {
     font-size: 20px;
     margin-top: 8px;
 }
+
+/* --- Glow for updated sections (minimal addition) --- */
+@keyframes glowPulse {
+    0%   { box-shadow: 0 0 6px 2px rgba(255,255,255,0.35); transform: translateY(0); }
+    50%  { box-shadow: 0 0 24px 8px rgba(255,255,255,0.65); transform: translateY(-3px); }
+    100% { box-shadow: 0 0 6px 2px rgba(255,255,255,0.35); transform: translateY(0); }
+}
+.glow {
+    animation: glowPulse 1s ease-in-out;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -263,6 +273,9 @@ if not df.empty:
     # --- FUTURE PROCEDURES ---
     df_future = df_today[df_today['PROCEDURE_END'] > simulated_current_time]
 
+    # --- Prepare previous counts for change detection (minimal addition) ---
+    previous_section_counts = section_counts.copy()
+
     # --- LIVE SIMULATION LOOP ---
     while True:
         current_time = datetime.now(tz)
@@ -300,16 +313,30 @@ if not df.empty:
             """, unsafe_allow_html=True)
 
         current_section_counts = df_today[df_today['PROCEDURE_END'] <= simulated_current_time + timedelta(seconds=elapsed_seconds)].groupby('SECTION_CODE').size()
+
+        # --- Detect which sections increased since last iteration (minimal addition) ---
+        # create a union index so new sections are handled too
+        union_index = previous_section_counts.index.union(current_section_counts.index)
+        prev_reindexed = previous_section_counts.reindex(union_index, fill_value=0)
+        curr_reindexed = current_section_counts.reindex(union_index, fill_value=0)
+        diffs = curr_reindexed - prev_reindexed
+        updated_sections = diffs[diffs > 0].index.tolist()
+
         with section_placeholder.container():
             section_html = "<div style='text-align:center;'>"
+            # iterate current counts to preserve the same visual behavior
             for section, count in current_section_counts.items():
                 color = section_colors.get(section, "#888888")
+                glow_class = "glow" if section in updated_sections else ""
                 section_html += f"""
-                <div class='section-box' style='background-color:{color};'>
+                <div class='section-box {glow_class}' style='background-color:{color};'>
                     {count:,}
                     <div class='section-label'>{section}</div>
                 </div>"""
             section_html += "</div>"
             st.markdown(section_html, unsafe_allow_html=True)
+
+        # update previous counts for next loop
+        previous_section_counts = curr_reindexed.copy()
 
         time.sleep(1)
