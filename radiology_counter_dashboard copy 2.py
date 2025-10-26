@@ -9,11 +9,9 @@ import base64
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="Radiology Procedures Counter", layout="wide")
 
-
 with open("./BG.png", "rb") as f:
     bg_base64 = base64.b64encode(f.read()).decode()
 
-# --- CUSTOM CSS ---
 # --- CUSTOM CSS ---
 st.markdown(f"""
 <style>
@@ -24,16 +22,12 @@ body, .stApp {{
     background-attachment: fixed;
     color: #ffffff;
 }}
-
-/* Keep your block container centered and max-width */
 .main .block-container {{
     max-width: 900px;
     padding: 1rem 2rem;
-    background-color: rgba(0,0,0,0.4); /* semi-transparent overlay for readability */
+    background-color: rgba(0,0,0,0.4);
     border-radius: 15px;
 }}
-
-/* Optional: make counters slightly transparent so background shows through */
 .counter, .alltime-counter, .section-box {{
     background-color: rgba(31, 31, 31, 0.7);
 }}
@@ -44,38 +38,34 @@ h1 {{
     margin-top: 10px;
     margin-bottom: 20px;
 }}
-
-/* --- Today's Counter --- */
 .counter {{
     text-align: center;
     margin: 20px 0;
-    padding: 0;          
-    border: none;        
-    border-radius: 0;    
-    background-color: transparent; 
-    box-shadow: none;    
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
 }}
 .counter-number {{
     font-size: 120px;
     font-weight: bold;
     color: #FFA500;
-    text-shadow: 0 0 20px #FFA500; 
+    text-shadow: 0 0 20px #FFA500;
 }}
 .counter-label {{
     font-size: 42px;
     color: #ffffff;
     letter-spacing: 1px;
 }}
-
-/* --- All-Time Counter --- */
 .alltime-counter {{
     text-align: center;
     margin: 20px 0;
-    padding: 0;          
-    border: none;        
-    border-radius: 0;    
-    background-color: transparent; 
-    box-shadow: none;    
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
 }}
 .alltime-number {{
     font-size: 60px;
@@ -86,9 +76,6 @@ h1 {{
     font-size: 28px;
     color: #cccccc;
 }}
-
-
-/* --- Date & Clock --- */
 .datetime-container {{
     text-align: center;
     margin: 20px 0 40px 0;
@@ -111,8 +98,6 @@ h1 {{
     font-family: 'Consolas', 'Courier New', monospace;
     text-shadow: 0 0 10px #00FF88;
 }}
-
-/* --- Sections --- */
 .section-box {{
     display: inline-block;
     border-radius: 15px;
@@ -132,8 +117,6 @@ h1 {{
     font-size: 20px;
     margin-top: 8px;
 }}
-
-/* --- Glow animation --- */
 @keyframes glowPulse {{
     0%   {{ box-shadow: 0 0 6px 2px rgba(255,255,255,0.35); transform: translateY(0); }}
     50%  {{ box-shadow: 0 0 24px 8px rgba(255,255,255,0.65); transform: translateY(-3px); }}
@@ -145,12 +128,11 @@ h1 {{
 </style>
 """, unsafe_allow_html=True)
 
-
 # --- FILE PATHS ---
 excel_path = r"./Global Health Data.xlsx"
 logo_path = r"./AAML_Logo.png"
 
-# --- HEADER (logo centered above title using base64) ---
+# --- HEADER ---
 def img_to_base64(path):
     with open(path, "rb") as f:
         data = f.read()
@@ -171,7 +153,6 @@ def load_data(path):
     df = pd.read_excel(path)
     df['PROCEDURE_END'] = pd.to_datetime(df['PROCEDURE_END'], format="%d-%m-%y %H:%M:%S", errors='coerce')
     df = df.dropna(subset=['PROCEDURE_END'])
-    # Add random seconds to PROCEDURE_END to ensure uniqueness
     df['PROCEDURE_END'] = df['PROCEDURE_END'] + pd.to_timedelta(np.random.randint(0, 60, len(df)), unit='s')
     df = df.sort_values('PROCEDURE_END')
     return df
@@ -182,13 +163,10 @@ df = load_data(excel_path)
 tz = ZoneInfo("Asia/Riyadh")  # GMT+3
 
 if not df.empty:
-    # --- AUTO-START SIMULATION WITH DEFAULT VALUES ---
     st.sidebar.header("Simulation Setup")
-
     default_alltime = 1_554_362
     default_date = df['PROCEDURE_END'].dt.date.min()
 
-    # All-Time input (editable)
     alltime_start = st.sidebar.number_input(
         "Enter All-Time Start Value",
         min_value=0,
@@ -197,7 +175,6 @@ if not df.empty:
         format="%d"
     )
 
-    # Date picker (editable)
     available_dates = sorted(df['PROCEDURE_END'].dt.date.unique())
     selected_date = st.sidebar.selectbox(
         "Select a Date to Simulate",
@@ -206,13 +183,11 @@ if not df.empty:
         format_func=lambda d: d.strftime("%d-%m-%Y")
     )
 
-    # Auto-start simulation
-    start_sim = True
     st.sidebar.success(f"Simulation auto-started for **{selected_date.strftime('%d-%m-%Y')}** with All-Time {alltime_start:,}")
 
     # --- PLACEHOLDERS ---
+    total_counter_placeholder = st.empty()  # New placeholder above date
     datetime_placeholder = st.empty()
-    alltime_placeholder = st.empty()
     display_placeholder = st.empty()
     section_placeholder = st.empty()
 
@@ -230,7 +205,6 @@ if not df.empty:
         "HE": "#264653"
     }
 
-    # --- SIMULATION SETUP ---
     now = datetime.now(tz)
     time_of_day_now = now.time()
 
@@ -244,25 +218,24 @@ if not df.empty:
     if simulated_current_time > last_procedure_time:
         simulated_current_time = last_procedure_time
 
-    # --- INITIAL COUNTS ---
     simulated_count = df_today[df_today['PROCEDURE_END'] <= simulated_current_time].shape[0]
     section_counts = df_today[df_today['PROCEDURE_END'] <= simulated_current_time].groupby('SECTION_CODE').size()
     total_count = alltime_start + simulated_count
 
     # --- INITIAL DISPLAY ---
+    with total_counter_placeholder.container():
+        st.markdown(f"""
+        <div class='alltime-counter'>
+            <div class='alltime-number'>{total_count:,}</div>
+            <div class='alltime-label'>Total Procedures Since Go-Live</div>
+        </div>
+        """, unsafe_allow_html=True)
+
     with datetime_placeholder.container():
         st.markdown(f"""
         <div class='datetime-container'>
             <div class='current-date'>{datetime.now(tz).strftime('%A, %d %B %Y')}</div>
             <div class='clock'>{datetime.now(tz).strftime('%H:%M:%S')}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with alltime_placeholder.container():
-        st.markdown(f"""
-        <div class='alltime-counter'>
-            <div class='alltime-number'>{total_count:,}</div>
-            <div class='alltime-label'>Total Procedures</div>
         </div>
         """, unsafe_allow_html=True)
 
@@ -286,17 +259,28 @@ if not df.empty:
         section_html += "</div>"
         st.markdown(section_html, unsafe_allow_html=True)
 
-    # --- FUTURE PROCEDURES ---
     df_future = df_today[df_today['PROCEDURE_END'] > simulated_current_time]
-
-    # --- Prepare previous counts for change detection (minimal addition) ---
     previous_section_counts = section_counts.copy()
 
     # --- LIVE SIMULATION LOOP ---
     while True:
         current_time = datetime.now(tz)
+        elapsed_seconds = (datetime.combine(selected_date, current_time.time()) - simulated_current_time).total_seconds()
+        new_count = df_future[df_future['PROCEDURE_END'] <= simulated_current_time + timedelta(seconds=elapsed_seconds)].shape[0]
 
-        # --- UPDATED DATETIME DISPLAY ---
+        today_count = simulated_count + new_count
+        total_count = alltime_start + today_count
+
+        # Update Total counter
+        with total_counter_placeholder.container():
+            st.markdown(f"""
+            <div class='alltime-counter'>
+                <div class='alltime-number'>{total_count:,}</div>
+                <div class='alltime-label'>Total Procedures Since Go-Live</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Update date/time
         with datetime_placeholder.container():
             st.markdown(f"""
             <div class='datetime-container'>
@@ -305,13 +289,7 @@ if not df.empty:
             </div>
             """, unsafe_allow_html=True)
 
-        elapsed_seconds = (datetime.combine(selected_date, current_time.time()) - simulated_current_time).total_seconds()
-        new_count = df_future[df_future['PROCEDURE_END'] <= simulated_current_time + timedelta(seconds=elapsed_seconds)].shape[0]
-
-        today_count = simulated_count + new_count
-        total_count = alltime_start + today_count
-
-        # Update counters
+        # Update today's procedures
         with display_placeholder.container():
             st.markdown(f"""
             <div class='counter'>
@@ -320,18 +298,8 @@ if not df.empty:
             </div>
             """, unsafe_allow_html=True)
 
-        with alltime_placeholder.container():
-            st.markdown(f"""
-            <div class='alltime-counter'>
-                <div class='alltime-number'>{total_count:,}</div>
-                <div class='alltime-label'>Total Procedures</div>
-            </div>
-            """, unsafe_allow_html=True)
-
+        # Update sections
         current_section_counts = df_today[df_today['PROCEDURE_END'] <= simulated_current_time + timedelta(seconds=elapsed_seconds)].groupby('SECTION_CODE').size()
-
-        # --- Detect which sections increased since last iteration (minimal addition) ---
-        # create a union index so new sections are handled too
         union_index = previous_section_counts.index.union(current_section_counts.index)
         prev_reindexed = previous_section_counts.reindex(union_index, fill_value=0)
         curr_reindexed = current_section_counts.reindex(union_index, fill_value=0)
@@ -340,7 +308,6 @@ if not df.empty:
 
         with section_placeholder.container():
             section_html = "<div style='text-align:center;'>"
-            # iterate current counts to preserve the same visual behavior
             for section, count in current_section_counts.items():
                 color = section_colors.get(section, "#888888")
                 glow_class = "glow" if section in updated_sections else ""
@@ -352,7 +319,5 @@ if not df.empty:
             section_html += "</div>"
             st.markdown(section_html, unsafe_allow_html=True)
 
-        # update previous counts for next loop
         previous_section_counts = curr_reindexed.copy()
-
         time.sleep(1)
